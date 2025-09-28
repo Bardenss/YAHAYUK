@@ -55,13 +55,54 @@ end
 -- ============================================================
 -- ROUTE EXAMPLE (isi CFrame)
 -- ============================================================
+local intervalFlip = false -- toggle interval rotation
+
+-- ============================================================
+-- Hapus frame duplikat
+-- ============================================================
+local function removeDuplicateFrames(frames, tolerance)
+    tolerance = tolerance or 0.01 -- toleransi kecil
+    if #frames < 2 then return frames end
+    local newFrames = {frames[1]}
+    for i = 2, #frames do
+        local prev = frames[i-1]
+        local curr = frames[i]
+        local prevPos, currPos = prev.Position, curr.Position
+        local prevRot, currRot = prev - prev.Position, curr - curr.Position
+
+        local posDiff = (prevPos - currPos).Magnitude
+        local rotDiff = (prevRot.Position - currRot.Position).Magnitude -- rot diff sederhana
+
+        if posDiff > tolerance or rotDiff > tolerance then
+            table.insert(newFrames, curr)
+        end
+    end
+    return newFrames
+end
+-- ============================================================
+-- Apply interval flip
+-- ============================================================
+local function applyIntervalRotation(cf)
+    if intervalFlip then
+        local pos = cf.Position
+        local rot = cf - pos
+        local newRot = CFrame.Angles(0, math.pi, 0) * rot
+        return CFrame.new(pos) * newRot
+    else
+        return cf
+    end
+end
+
+-- ============================================================
+-- Load route dengan auto adjust + hapus duplikat
+-- ============================================================
 local function loadRoute(url)
     local ok, result = pcall(function()
         return loadstring(game:HttpGet(url))()
     end)
     if ok and type(result) == "table" then
-        -- auto adjust langsung disini
-        return adjustRoute(result)
+        local cleaned = removeDuplicateFrames(result, 0.01) -- tambahkan tolerance
+        return adjustRoute(cleaned)
     else
         warn("Gagal load route dari: "..url)
         return {}
@@ -119,7 +160,13 @@ local function getNearestFrameIndex(frames)
     return startIdx
 end
 
+-- ============================================================
+-- Modifikasi lerpCF untuk interval flip
+-- ============================================================
 local function lerpCF(fromCF, toCF)
+    fromCF = applyIntervalRotation(fromCF)
+    toCF = applyIntervalRotation(toCF)
+
     local duration = frameTime / math.max(0.05, playbackRate)
     local t = 0
     while t < duration do
@@ -132,6 +179,7 @@ local function lerpCF(fromCF, toCF)
         end
     end
 end
+
 
 -- notify placeholder
 local notify = function() end
@@ -393,6 +441,16 @@ MainTab:Dropdown({
         else
             notify("Playback Speed", "Gagal membaca opsi speed!", 3)
         end
+    end
+})
+MainTab:Toggle({
+    Title = "Interval Flip",
+    Icon = "lucide:refresh-ccw",
+    Desc = "ON → Hadap belakang tiap frame",
+    Value = false,
+    Callback = function(state)
+        intervalFlip = state
+        notify("Interval Flip", state and "✅ Aktif" or "❌ Nonaktif", 2)
     end
 })
 
