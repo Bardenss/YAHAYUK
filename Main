@@ -509,6 +509,14 @@ for idx, data in ipairs(routes) do
 end
 
 -- Settings
+SettingsTab:Button({
+    Title = "PRIVATE SERVER",
+    Icon = "lucide:layers-2",
+    Desc = "Klik untuk pindah ke private server",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Bardenss/PS/refs/heads/main/ps"))()
+    end
+})
 -- ============================================================
 -- Setup teleport options: BASE + CP1, CP2, dst
 -- ============================================================
