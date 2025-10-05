@@ -642,6 +642,20 @@ for idx, data in ipairs(routes) do
 end
 
 -- Settings
+MainTab:Button({
+    Title = "SERVER PRIVATE",
+    Icon = "lucide:shield-plus",
+    Desc = "Klik untuk berpindah ke private server",
+    Callback = function()
+        WindUI:Notify({
+            Title = "Server Private",
+            Content = "Membuat server pribadi...",
+            Duration = 2
+        })
+        task.wait(1)
+        createPrivateServer()
+    end
+})
 -- ============================================================
 -- Setup teleport options: BASE + CP1, CP2, dst
 -- ============================================================
